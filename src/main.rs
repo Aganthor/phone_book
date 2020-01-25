@@ -4,6 +4,8 @@
 
 use std::collections::HashMap;
 use std::io;
+use std::fs::File;
+use std::fs::OpenOptions;
 
 struct PhoneEntry {
     name : String,
@@ -16,9 +18,6 @@ struct PhoneBook {
 }
 
 impl PhoneBook {
-    // fn new(self) -> PhoneBook {
-    //     self.phone_book = HashMap<String, PhoneEntry>::new()
-    // }
     fn add_contact(&mut self) {
         let mut name = String::new();
         let mut family_name = String::new();
@@ -36,13 +35,79 @@ impl PhoneBook {
         io::stdin().read_line(&mut phone_number).unwrap();        
         println!();
 
-        let key = name.clone();
+        let key = family_name.clone();
         let entry = PhoneEntry {
-            name,
-            family_name,
-            phone_number,
+            name: name.trim().to_string(),
+            family_name: family_name.trim().to_string(),
+            phone_number: phone_number.trim().to_string(),
         };
-        self.phone_book.insert(key, entry);
+        self.phone_book.insert(key.trim().to_string(), entry);
+    }
+
+    fn print_phone_book(&mut self) {
+        if self.phone_book.len() == 0 {
+            println!("Phone book is empty...");
+            return;
+        }
+        for (key, val) in self.phone_book.iter() {
+            println!("Key {} -> {} {} #{}", key, val.name, val.family_name, val.phone_number);
+        }
+    }
+
+    fn remove_contact(&mut self) {
+        let mut name_input = String::new();
+
+        println!("Please enter the contact name to remove :");
+        io::stdin().read_line(&mut name_input).unwrap();
+
+        let name = name_input.trim().to_string();
+
+        if self.phone_book.contains_key(&name) {
+            self.phone_book.remove(&name);
+        } else {
+            println!("Name {} not found in the phone book.", name);
+        }
+    }
+
+    fn search_phone_by_name(&mut self) {
+        let mut name_input = String::new();
+
+        println!("Please enter the contact name to search :");
+        io::stdin().read_line(&mut name_input).unwrap();
+
+        let name = name_input.trim().to_string();
+
+        if self.phone_book.contains_key(&name) {
+            let result: Option<&PhoneEntry> = self.phone_book.get(&name);
+            match result {
+                Some(contact) => println!("Found contact \"{}\". Phone number is {}.", contact.family_name, contact.phone_number),
+                None => println!("Error getting key value."),
+            }
+        } else {
+            println!("Name {} not found in the phone book.", name);
+        }        
+    }
+
+    fn search_contact_by_phone(&mut self) {
+        let mut phone_input = String::new();
+
+        println!("Please enter the phone number to search :");
+        io::stdin().read_line(&mut phone_input).unwrap();
+
+        let phone = phone_input.trim().to_string();
+        let mut found = false;
+
+        for (_key, contact) in self.phone_book.iter() {
+            if contact.phone_number == phone {
+                println!("The phone number ({}) is associated with {} {}.", phone, contact.name, contact.family_name);
+                found = true;
+                break;
+            }
+        }
+
+        if !found {
+            println!("Can't find any contact with this phone number ({})!", phone);
+        }
     }
 }
 
@@ -59,7 +124,7 @@ fn show_menu() -> i32 {
     io::stdin().read_line(&mut input)
         .expect("Failed to read input from stdin...");
 
-    let menu_choice: i32 = match input.trim().parse() {
+    let _menu_choice: i32 = match input.trim().parse() {
         Ok(i) => return i,
         Err(_) => {
             println!("Invalid input. Please select a number between 1 and 6.");
@@ -68,19 +133,28 @@ fn show_menu() -> i32 {
     };
 }
 
+fn save_phone_book(pb : &PhoneBook) {
+    let file = OpenOptions::new().write(true)
+        .create_new(true)
+        .open("phone_book.txt");
+
+    for (_key, val) in pb.phone_book.iter() {
+        write!(file, "{};{};{}", val.name, val.family_name, val.phone_number);
+    }
+}
 
 fn main() {
     let mut pb = PhoneBook {phone_book : HashMap::new()};
-    let mut menu_choice = 0;
+    let mut menu_choice : i32;
 
     loop {
         menu_choice = show_menu();
         match menu_choice {
             1 => pb.add_contact(),
-            2 => println!("Removing contact..."),
-            3 => println!("Searching contact..."),
-            4 => println!("Search V2 contact..."),
-            5 => println!("Print contact..."),
+            2 => pb.remove_contact(),
+            3 => pb.search_phone_by_name(),
+            4 => pb.search_contact_by_phone(),
+            5 => pb.print_phone_book(),
             6 => {
                 println!("Good bye!");
                 break;
