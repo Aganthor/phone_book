@@ -6,11 +6,18 @@ use std::collections::HashMap;
 use std::io;
 use std::fs::File;
 use std::fs::OpenOptions;
+use std::fmt;
 
 struct PhoneEntry {
     name : String,
     family_name : String,
     phone_number : String
+}
+
+impl fmt::Display for PhoneEntry {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "", self.name, )
+    }
 }
 
 struct PhoneBook {
