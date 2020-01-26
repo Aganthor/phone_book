@@ -15,8 +15,9 @@ struct PhoneEntry {
 }
 
 impl fmt::Display for PhoneEntry {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "", self.name, )
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{} {} telephone # is {}", self.name, self.family_name, self.phone_number)?;
+        Ok(())
     }
 }
 
@@ -56,8 +57,8 @@ impl PhoneBook {
             println!("Phone book is empty...");
             return;
         }
-        for (key, val) in self.phone_book.iter() {
-            println!("Key {} -> {} {} #{}", key, val.name, val.family_name, val.phone_number);
+        for (_key, val) in self.phone_book.iter() {
+            println!("{}", val);
         }
     }
 
