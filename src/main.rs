@@ -5,6 +5,7 @@
 use std::collections::HashMap;
 use std::io;
 use std::fs::File;
+use std::io::Write;
 use std::fs::OpenOptions;
 use std::fmt;
 
@@ -142,14 +143,23 @@ fn show_menu() -> i32 {
 }
 
 fn save_phone_book(pb : &PhoneBook) {
-    let file = OpenOptions::new().write(true)
-        .create_new(true)
-        .open("phone_book.txt");
-
-    for (_key, val) in pb.phone_book.iter() {
-        write!(file, "{};{};{}", val.name, val.family_name, val.phone_number);
-    }
+    let file = match OpenOptions::new().write(true)
+        .truncate(true)
+        .open("phone_book.txt") {
+            Ok(file) => {
+                for (_key, val) in pb.phone_book.iter() {
+                    writeln!(&file, "{};{};{}", val.name, val.family_name, val.phone_number).expect("Failed to write to file...");
+                }
+            },
+            Err(e) => {
+                println!("Error in creating the file ({}).", e);
+            },
+        };
 }
+
+//fn load_phone_book(pb: &mut PhoneBook) -> Result<(), &'static str> {
+
+//}
 
 fn main() {
     let mut pb = PhoneBook {phone_book : HashMap::new()};
@@ -170,5 +180,7 @@ fn main() {
             _ => {}
         }
     }
+
+    save_phone_book(&pb);
 
 }
