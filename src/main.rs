@@ -144,7 +144,7 @@ fn show_menu() -> i32 {
 }
 
 fn save_phone_book(pb : &PhoneBook) {
-    let _file = match OpenOptions::new().write(true)
+    let _file = match OpenOptions::new().create(true).write(true)
         .truncate(true)
         .open("phone_book.txt") {
             Ok(file) => {
@@ -153,7 +153,7 @@ fn save_phone_book(pb : &PhoneBook) {
                 }
             },
             Err(e) => {
-                println!("Error in creating the file ({}).", e);
+                println!("Error in saving phone book to file ({}).", e);
             },
         };
 }
@@ -162,9 +162,8 @@ fn load_phone_book(pb: &mut PhoneBook) {
     let _file = match OpenOptions::new().read(true).open("phone_book.txt") {
         Ok(file) => {
             let file = BufReader::new(file);
-            for line in file.lines() {
+            for line in file.lines().filter_map(|result| result.ok()) {
                 let contact_info: Vec<&str> = line.split(';').collect();
-
                 let entry = PhoneEntry {
                     name: contact_info[0].trim().to_string(),
                     family_name: contact_info[1].trim().to_string(),
@@ -172,10 +171,8 @@ fn load_phone_book(pb: &mut PhoneBook) {
                 };
                 pb.phone_book.insert(contact_info[1].trim().to_string(), entry);
             }
-        },
-        Err(e) => {
-            println!("Error reading phone book content ({}).", e);
-        },
+        }
+        Err(e) => println!("Error reading phone book content ({}).", e),
     };
 }
 
