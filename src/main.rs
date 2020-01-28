@@ -5,6 +5,7 @@
 use std::collections::HashMap;
 use std::io;
 use std::fs::File;
+use std::io::{BufRead, BufReader};
 use std::io::Write;
 use std::fs::OpenOptions;
 use std::fmt;
@@ -143,7 +144,7 @@ fn show_menu() -> i32 {
 }
 
 fn save_phone_book(pb : &PhoneBook) {
-    let file = match OpenOptions::new().write(true)
+    let _file = match OpenOptions::new().write(true)
         .truncate(true)
         .open("phone_book.txt") {
             Ok(file) => {
@@ -157,13 +158,32 @@ fn save_phone_book(pb : &PhoneBook) {
         };
 }
 
-//fn load_phone_book(pb: &mut PhoneBook) -> Result<(), &'static str> {
+fn load_phone_book(pb: &mut PhoneBook) {
+    let _file = match OpenOptions::new().read(true).open("phone_book.txt") {
+        Ok(file) => {
+            let file = BufReader::new(file);
+            for line in file.lines() {
+                let contact_info: Vec<&str> = line.split(';').collect();
 
-//}
+                let entry = PhoneEntry {
+                    name: contact_info[0].trim().to_string(),
+                    family_name: contact_info[1].trim().to_string(),
+                    phone_number: contact_info[2].trim().to_string(),
+                };
+                pb.phone_book.insert(contact_info[1].trim().to_string(), entry);
+            }
+        },
+        Err(e) => {
+            println!("Error reading phone book content ({}).", e);
+        },
+    };
+}
 
 fn main() {
     let mut pb = PhoneBook {phone_book : HashMap::new()};
     let mut menu_choice : i32;
+
+    load_phone_book(&mut pb);
 
     loop {
         menu_choice = show_menu();
@@ -182,5 +202,4 @@ fn main() {
     }
 
     save_phone_book(&pb);
-
 }
